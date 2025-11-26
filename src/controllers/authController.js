@@ -1,26 +1,94 @@
-const prisma = require('../prismaClient');
-const bcrypt = require('bcryptjs');
+// src/controllers/auth.controller.js
+import prisma from '../prismaClient.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-async function register(req, res) {
+// REGISTER (Responsable: Integrante A)
+const register = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Missing fields' });
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(409).json({ error: 'Email already in use' });
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email and password are required'
+      });
+    }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
-
-    const user = await prisma.user.create({
-      data: { email, password: hashed }
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
     });
 
-    res.status(201).json({ id: user.id, email: user.email });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-}
+    if (existingUser) {
+      return res.status(400).json({
+        error: 'Email already in use'
+      });
+    }
 
-module.exports = { register };
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword
+      }
+    });
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error registering user' });
+  }
+};
+
+// LOGIN (Responsable: Integrante B)
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email and password are required'
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        error: 'Invalid credentials'
+      });
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      return res.status(401).json({
+        error: 'Invalid credentials'
+      });
+    }
+
+    // Crear JWT
+    const token = jwt.sign(
+      { sub: user.id },            // payload
+      process.env.JWT_SECRET,      // secret
+      { expiresIn: '1h' }          // expires
+    );
+
+    return res.json({ token });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error logging in user' });
+  }
+};
+
+export { register, login };
