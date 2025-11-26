@@ -7,4 +7,7 @@ app.get('/', (req, res) => res.send('API running'));
 module.exports = app;
 const tasksRouter = require('./routes/tasks');
 app.use('/tasks', tasksRouter);
+const authRouter = require('./routes/auth');
+app.use('/auth', authRouter);
+
 
