@@ -43,3 +43,7 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port: http://localhost:${PORT}`);
 });
+
+const passport = require('./config/passport');
+app.use(passport.initialize());
+
