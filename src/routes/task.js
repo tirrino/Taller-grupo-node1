@@ -23,3 +23,6 @@ router.put('/:id', auth, controller.updateTask);
 router.delete('/:id', auth, controller.deleteTask);
 const tasks = await prisma.task.findMany({ where: { userId: req.user.id } });
 const task = await prisma.task.create({ data: { title, description, userId: req.user.id } });
+const passport = require('passport');
+router.get('/', passport.authenticate('jwt', { session: false }), controller.listTasks);
+
