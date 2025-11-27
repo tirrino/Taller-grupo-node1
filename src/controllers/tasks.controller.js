@@ -1,12 +1,15 @@
+// src/controllers/tasks.controller.js
 import prisma from '../prismaClient.js';
 
 // GET /tasks
 const getTasks = async (req, res) => {
   try {
+
+    console.log("---------")
     const tasks = await prisma.task.findMany();
     res.json(tasks);
   } catch (error) {
-    console.error('GET /task error:', error);
+    console.error('GET /tasks error:', error);
     res.status(500).json({ error: 'Error fetching tasks' });
   }
 };

@@ -41,6 +41,17 @@ const register = async (req, res) => {
       }
     });
 
+    return res.status(200).json({
+      message: "Inicio de sesión exitoso.",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+
+
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error registering user' });
